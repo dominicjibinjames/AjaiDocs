@@ -36,39 +36,9 @@ export function ImportModal({
       const response = await fetch("/api/documents/import", { method: "POST", body: form });
       const data = (await response.json()) as { id?: string; title?: string; error?: string };
       if (!response.ok || !data.id) {
-        // #region agent log
-        fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-          body: JSON.stringify({
-            sessionId: "ae0ad2",
-            runId: "pre-fix",
-            hypothesisId: "H4",
-            location: "components/import/import-modal.tsx:upload",
-            message: "import rejected",
-            data: { status: response.status, hasId: Boolean(data.id) },
-            timestamp: Date.now(),
-          }),
-        }).catch(() => {});
-        // #endregion
         setError(data.error ?? "Could not import that file.");
         return;
       }
-      // #region agent log
-      fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-        body: JSON.stringify({
-          sessionId: "ae0ad2",
-          runId: "pre-fix",
-          hypothesisId: "H4",
-          location: "components/import/import-modal.tsx:upload",
-          message: "import ok, pushing editor",
-          data: { status: response.status, hasId: Boolean(data.id) },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
       onImported?.({ id: data.id, title: data.title ?? "Untitled" });
       window.location.assign(`/docs/${data.id}`);
     } catch {

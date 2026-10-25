@@ -26,21 +26,6 @@ export default async function DocumentPage({ params }: { params: Promise<{ id: s
   if (access === "none") notFound();
 
   const { json, recovered } = coerceDocumentJson(document.contentJson);
-  // #region agent log
-  fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-    body: JSON.stringify({
-      sessionId: "ae0ad2",
-      runId: "post-fix",
-      hypothesisId: "C",
-      location: "app/docs/[id]/page.tsx:DocumentPage",
-      message: "document page rendered",
-      data: { hasTitle: Boolean(document.title), recovered },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
 
   return (
     <DocumentEditorLoader

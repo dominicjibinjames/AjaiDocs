@@ -32,21 +32,6 @@ export async function POST(request: Request) {
       },
     });
 
-    // #region agent log
-    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-      body: JSON.stringify({
-        sessionId: "ae0ad2",
-        runId: "post-fix",
-        hypothesisId: "C",
-        location: "app/api/documents/import/route.ts:POST",
-        message: "import succeeded",
-        data: { ext: file.name.split(".").pop() ?? "", hasWarning: Boolean(imported.warning) },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     return NextResponse.json({
       id: document.id,
       title: document.title,

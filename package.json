@@ -4,16 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "prisma generate && next build",
+    "build": "node scripts/prisma-for-env.cjs --push && next build",
     "start": "next start",
     "lint": "eslint",
     "setup": "prisma generate && prisma db push && tsx prisma/seed.ts",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:prod": "prisma generate --schema=prisma/schema.postgres.prisma && tsx prisma/seed.ts && prisma generate",
     "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "postinstall": "prisma generate"
+    "postinstall": "node scripts/prisma-for-env.cjs"
   },
   "dependencies": {
     "@prisma/client": "^6.16.2",

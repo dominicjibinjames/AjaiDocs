@@ -50,24 +50,6 @@ export function DocumentEditor({
   const bodyTimer = useRef<number | null>(null);
   const titleTimer = useRef<number | null>(null);
 
-  useEffect(() => {
-    // #region agent log
-    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-      body: JSON.stringify({
-        sessionId: "ae0ad2",
-        runId: "pre-fix",
-        hypothesisId: "H2",
-        location: "components/editor/document-editor.tsx:mount",
-        message: "editor mounted",
-        data: { hasDocumentId: Boolean(documentId) },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-  }, [documentId]);
-
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [

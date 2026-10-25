@@ -64,21 +64,17 @@ Realtime cursors, comments, version history, offline mode, folders, image attach
 
 ## Deploy on Vercel
 
-The app is production-ready locally. A public URL needs your Vercel login plus a free Neon database (serverless filesystems cannot keep SQLite).
+Local `npm run dev` stays on SQLite (`prisma/schema.prisma` + `DATABASE_URL=file:./dev.db`).  
+GitHub → Vercel automatically uses `prisma/schema.postgres.prisma` when `VERCEL=1`.
 
-1. `npx vercel login`
-2. Create a free [Neon](https://neon.tech) project and copy the **pooled** connection string.
-3. Replace `prisma/schema.prisma` with `prisma/schema.postgres.prisma` (same models, Postgres provider).
-4. In Vercel, set:
-   - `DATABASE_URL` to the Neon pooled URL
-   - `SESSION_SECRET` to a long random string
-5. `npx vercel --prod`. After the first deploy, run the seed once:
+1. Connect a Neon (or Prisma Postgres) database to the Vercel project.
+2. Set Production `DATABASE_URL` to the **pooled** `postgresql://…` URL.
+3. Push to GitHub. The Vercel build generates the Postgres client and runs `prisma db push`.
+4. After the first deploy, seed demo users once (then local Prisma is restored to SQLite):
 
 ```bash
-DATABASE_URL="your-neon-url" npm run db:seed
+DATABASE_URL="your-neon-pooled-url" npm run db:seed:prod
 ```
-
-SQLite is the local default so reviewers do not need Docker. It is not used on Vercel because serverless filesystems are not durable.
 
 ## Scripts
 

@@ -47,27 +47,7 @@ export function DocsHome({
   const deletedIds = useRef(new Set<string>());
 
   useEffect(() => {
-    const incoming = owned.filter((doc) => !deletedIds.current.has(doc.id));
-    // #region agent log
-    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-      body: JSON.stringify({
-        sessionId: "ae0ad2",
-        runId: "post-fix",
-        hypothesisId: "H-DEL-4",
-        location: "components/documents/docs-home.tsx:syncOwned",
-        message: "owned props synced into state",
-        data: {
-          propCount: owned.length,
-          incomingCount: incoming.length,
-          skippedDeleted: owned.length - incoming.length,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
-    setOwnedDocs(incoming);
+    setOwnedDocs(owned.filter((doc) => !deletedIds.current.has(doc.id)));
   }, [owned]);
   useEffect(() => {
     setSharedDocs(shared);
@@ -115,21 +95,6 @@ export function DocsHome({
     deletedIds.current.add(id);
     setOwnedDocs((docs) => docs.filter((doc) => doc.id !== id));
     const response = await fetch(`/api/documents/${id}`, { method: "DELETE" });
-    // #region agent log
-    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-      body: JSON.stringify({
-        sessionId: "ae0ad2",
-        runId: "post-fix",
-        hypothesisId: "H-DEL-3",
-        location: "components/documents/docs-home.tsx:remove",
-        message: "delete response",
-        data: { status: response.status, ok: response.ok },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
     if (!response.ok) {
       deletedIds.current.delete(id);
       setOwnedDocs(snapshot);
@@ -235,21 +200,6 @@ export function DocsHome({
                         className="flex min-w-0 flex-1 items-start gap-4"
                         onClick={(event) => {
                           event.preventDefault();
-                          // #region agent log
-                          fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-                            body: JSON.stringify({
-                              sessionId: "ae0ad2",
-                              runId: "post-fix",
-                              hypothesisId: "H2",
-                              location: "components/documents/docs-home.tsx:ownedLink",
-                              message: "owned doc link clicked",
-                              data: { hasId: Boolean(doc.id) },
-                              timestamp: Date.now(),
-                            }),
-                          }).catch(() => {});
-                          // #endregion
                           window.location.assign(`/docs/${doc.id}`);
                         }}
                       >

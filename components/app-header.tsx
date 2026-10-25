@@ -15,22 +15,7 @@ export function AppHeader({
   const onEditor = Boolean(pathname && pathname.startsWith("/docs/") && pathname !== "/docs");
 
   async function logout() {
-    const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
-    // #region agent log
-    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
-      body: JSON.stringify({
-        sessionId: "ae0ad2",
-        runId: "pre-fix",
-        hypothesisId: "H1",
-        location: "components/app-header.tsx:logout",
-        message: "logout requested",
-        data: { status: response.status, pathname },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {});
-    // #endregion
+    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
     window.location.assign("/login");
   }
 

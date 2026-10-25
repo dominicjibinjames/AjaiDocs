@@ -1,12 +1,4 @@
-// Production schema for Neon / Postgres on Vercel.
-// Local development uses prisma/schema.prisma (SQLite) so reviewers can run
-// the app without Docker or a cloud database.
-//
-// To use this schema:
-//   1. Copy this file over prisma/schema.prisma
-//   2. Set DATABASE_URL to your Neon pooled connection string
-//   3. Run: npx prisma generate && npx prisma db push && npm run db:seed
-
+// Used automatically on Vercel (VERCEL=1). Local dev uses schema.prisma (SQLite).
 generator client {
   provider = "prisma-client-js"
 }
