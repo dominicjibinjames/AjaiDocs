@@ -1,0 +1,65 @@
+// Production schema for Neon / Postgres on Vercel.
+// Local development uses prisma/schema.prisma (SQLite) so reviewers can run
+// the app without Docker or a cloud database.
+//
+// To use this schema:
+//   1. Copy this file over prisma/schema.prisma
+//   2. Set DATABASE_URL to your Neon pooled connection string
+//   3. Run: npx prisma generate && npx prisma db push && npm run db:seed
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  createdAt    DateTime   @default(now())
+  ownedDocs    Document[]
+  shares       Share[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  title       String
+  contentJson Json
+  ownerId     String
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  shares      Share[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model Share {
+  id         String   @id @default(cuid())
+  documentId String
+  userId     String
+  role       String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([documentId, userId])
+  @@index([userId])
+}
