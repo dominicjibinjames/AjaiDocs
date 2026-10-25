@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { FilePlus, FileText, Upload } from "lucide-react";
 import { AppHeader } from "@/components/app-header";
@@ -44,9 +44,30 @@ export function DocsHome({
   const [ownedDocs, setOwnedDocs] = useState(owned);
   const [sharedDocs, setSharedDocs] = useState(shared);
   const [filter, setFilter] = useState<Filter>("all");
+  const deletedIds = useRef(new Set<string>());
 
   useEffect(() => {
-    setOwnedDocs(owned);
+    const incoming = owned.filter((doc) => !deletedIds.current.has(doc.id));
+    // #region agent log
+    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
+      body: JSON.stringify({
+        sessionId: "ae0ad2",
+        runId: "post-fix",
+        hypothesisId: "H-DEL-4",
+        location: "components/documents/docs-home.tsx:syncOwned",
+        message: "owned props synced into state",
+        data: {
+          propCount: owned.length,
+          incomingCount: incoming.length,
+          skippedDeleted: owned.length - incoming.length,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+    setOwnedDocs(incoming);
   }, [owned]);
   useEffect(() => {
     setSharedDocs(shared);
@@ -91,11 +112,29 @@ export function DocsHome({
 
   async function remove(id: string) {
     const snapshot = ownedDocs;
+    deletedIds.current.add(id);
     setOwnedDocs((docs) => docs.filter((doc) => doc.id !== id));
     const response = await fetch(`/api/documents/${id}`, { method: "DELETE" });
+    // #region agent log
+    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
+      body: JSON.stringify({
+        sessionId: "ae0ad2",
+        runId: "post-fix",
+        hypothesisId: "H-DEL-3",
+        location: "components/documents/docs-home.tsx:remove",
+        message: "delete response",
+        data: { status: response.status, ok: response.ok },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     if (!response.ok) {
+      deletedIds.current.delete(id);
       setOwnedDocs(snapshot);
-      setError("Only the owner can delete this document.");
+      const data = (await response.json().catch(() => ({}))) as { error?: string };
+      setError(data.error ?? "Could not delete that document.");
     }
   }
 

@@ -106,10 +106,49 @@ export async function DELETE(_: Request, context: RouteContext) {
   const { id } = await context.params;
   const document = await loadDocument(id);
   if (!document) return notFound();
-  if (!canDelete(document, auth.user.id)) {
+  const allowed = canDelete(document, auth.user.id);
+  // #region agent log
+  fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
+    body: JSON.stringify({
+      sessionId: "ae0ad2",
+      runId: "pre-fix",
+      hypothesisId: "H-DEL-1",
+      location: "app/api/documents/[id]/route.ts:DELETE",
+      message: "delete authorization",
+      data: {
+        allowed,
+        ownerMatch: document.ownerId === auth.user.id,
+        hasShares: document.shares.length > 0,
+      },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+  // #endregion
+  if (!allowed) {
     return forbidden("Only the owner can delete this document.");
   }
 
-  await prisma.document.delete({ where: { id: document.id } });
+  try {
+    await prisma.document.delete({ where: { id: document.id } });
+  } catch (error) {
+    // #region agent log
+    fetch("http://127.0.0.1:7515/ingest/50601b8e-2e31-41a1-b6c4-bc41327995aa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "ae0ad2" },
+      body: JSON.stringify({
+        sessionId: "ae0ad2",
+        runId: "pre-fix",
+        hypothesisId: "H-DEL-2",
+        location: "app/api/documents/[id]/route.ts:DELETE",
+        message: "prisma delete threw",
+        data: { name: error instanceof Error ? error.name : "unknown" },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
+    return jsonError("Could not delete that document.", 500);
+  }
   return NextResponse.json({ ok: true });
 }
